@@ -98,7 +98,7 @@
   .disco{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
   @media (max-width:520px){ .disco{ grid-template-columns:1fr; } }
   .rel{ position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
-    min-height:150px; padding:20px; border-radius:18px; text-decoration:none; color:var(--ink);
+    min-height:104px; padding:14px 16px; border-radius:14px; text-decoration:none; color:var(--ink);
     border:1px solid var(--line);
     background:linear-gradient(155deg, rgba(0,212,255,0.10), rgba(92,0,255,0.12));
     transition:transform .25s ease, border-color .25s ease; }
@@ -110,8 +110,8 @@
   .rel:focus-visible{ outline:2px solid var(--cyan); outline-offset:2px; }
   .rel > *{ position:relative; z-index:1; }
   .rel-kind{ font-size:11px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--cyan); }
-  .rel-name{ font-family:var(--display); font-weight:300; font-size:34px; line-height:1; margin-top:auto; letter-spacing:0.01em; }
-  .rel-play{ display:flex; align-items:center; gap:8px; margin-top:14px; font-size:13px; font-weight:500; color:var(--muted); }
+  .rel-name{ font-family:var(--display); font-weight:300; font-size:24px; line-height:1; margin-top:auto; letter-spacing:0.01em; }
+  .rel-play{ display:flex; align-items:center; gap:7px; margin-top:10px; font-size:12px; font-weight:500; color:var(--muted); }
   .rel-play svg{ width:16px; height:16px; fill:currentColor; }
   .rel:hover .rel-play{ color:var(--ink); }
 
@@ -194,9 +194,36 @@
   footer{ margin-top:80px; text-align:center; color:var(--muted); font-size:12px; font-weight:300; letter-spacing:0.04em; }
   footer .name{ font-family:var(--display); font-weight:300; letter-spacing:0.14em; background:var(--grad);
     -webkit-background-clip:text; background-clip:text; color:transparent; }
+  /* audio toggle */
+  .audio-toggle{ position:fixed; right:18px; bottom:18px; z-index:50;
+    display:flex; align-items:center; gap:9px; padding:11px 15px; border-radius:999px;
+    border:1px solid var(--line); cursor:pointer; color:var(--ink);
+    background:rgba(10,12,28,0.72); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    font-family:'Montserrat',system-ui,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.04em;
+    box-shadow:0 8px 26px rgba(0,0,0,0.4); transition:transform .2s ease, border-color .2s ease; }
+  .audio-toggle:hover{ transform:translateY(-2px); border-color:rgba(0,212,255,0.5); }
+  .audio-toggle svg{ width:18px; height:18px; fill:var(--cyan); }
+  .audio-toggle .label{ white-space:nowrap; }
+  .audio-toggle .bars{ display:flex; align-items:flex-end; gap:2px; height:16px; }
+  .audio-toggle .bars span{ width:3px; background:var(--cyan); border-radius:2px; height:5px;
+    animation:eq 0.9s ease-in-out infinite; }
+  .audio-toggle .bars span:nth-child(2){ animation-delay:0.15s; }
+  .audio-toggle .bars span:nth-child(3){ animation-delay:0.3s; }
+  .audio-toggle .bars span:nth-child(4){ animation-delay:0.45s; }
+  .audio-toggle.paused .bars span{ animation-play-state:paused; height:5px; }
+  @keyframes eq{ 0%,100%{height:5px;} 50%{height:16px;} }
+  @media (prefers-reduced-motion: reduce){ .audio-toggle .bars span{ animation:none; } }
 </style>
 </head>
 <body>
+
+<audio id="bgm" loop preload="auto">
+  <source src="eMastered_TANOVA_intro_2026_shorter.mp3" type="audio/mpeg">
+</audio>
+<button id="audioToggle" class="audio-toggle paused" type="button" aria-label="Toggle background music" aria-pressed="false">
+  <span class="bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+  <span class="label">Play music</span>
+</button>
 
 <div class="glow glow-a"></div>
 <div class="glow glow-b"></div>
@@ -364,6 +391,36 @@
     entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
   }, { threshold:0.15 });
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // background music
+  (function(){
+    const bgm = document.getElementById('bgm');
+    const btn = document.getElementById('audioToggle');
+    const label = btn.querySelector('.label');
+    bgm.volume = 0.55;
+
+    function setUI(playing){
+      btn.classList.toggle('paused', !playing);
+      btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+      label.textContent = playing ? 'Pause music' : 'Play music';
+    }
+
+    function play(){ bgm.play().then(()=>setUI(true)).catch(()=>setUI(false)); }
+
+    btn.addEventListener('click', ()=>{
+      if(bgm.paused){ play(); } else { bgm.pause(); setUI(false); }
+    });
+    bgm.addEventListener('play', ()=>setUI(true));
+    bgm.addEventListener('pause', ()=>setUI(false));
+
+    // Try to autoplay; if the browser blocks it, start on first interaction.
+    play();
+    const kick = ()=>{ if(bgm.paused) play(); cleanup(); };
+    function cleanup(){
+      ['pointerdown','keydown','touchstart'].forEach(ev=>document.removeEventListener(ev, kick));
+    }
+    ['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev, kick, { once:false }));
+  })();
 </script>
 
 </body>
