@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>TANOVA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#07040f;
+    --black-2:#0c0817;
+    --blue:#3b5bff;
+    --blue-2:#5b7bff;
+    --purple:#9333ea;
+    --magenta:#e93fdc;
+    --ink:#f4f0ff;
+    --muted:#8f89ab;
+    --line: rgba(244,240,255,0.12);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--black);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  .noise{
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:0.05;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index:100;
+  }
+
+  .glow{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:0.55;
+    z-index:0;
+    pointer-events:none;
+  }
+  .glow-a{
+    width:60vmax; height:60vmax;
+    top:-25vmax; left:-20vmax;
+    background:radial-gradient(circle, var(--blue) 0%, transparent 70%);
+    animation:drift1 22s ease-in-out infinite;
+  }
+  .glow-b{
+    width:55vmax; height:55vmax;
+    bottom:-25vmax; right:-18vmax;
+    background:radial-gradient(circle, var(--purple) 0%, transparent 70%);
+    animation:drift2 26s ease-in-out infinite;
+  }
+  @keyframes drift1{
+    0%,100%{ transform:translate(0,0); }
+    50%{ transform:translate(6vmax, 8vmax); }
+  }
+  @keyframes drift2{
+    0%,100%{ transform:translate(0,0); }
+    50%{ transform:translate(-7vmax, -6vmax); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .glow-a, .glow-b, .bar, .pill{ animation:none !important; }
+  }
+
+  main{
+    position:relative;
+    z-index:1;
+    max-width:640px;
+    margin:0 auto;
+    padding:0 24px 80px;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding-top:64px;
+    text-align:center;
+  }
+
+  .avatar{
+    width:96px; height:96px;
+    margin:0 auto 28px;
+    border-radius:50%;
+    background:linear-gradient(145deg, var(--blue), var(--purple));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.05em;
+    color:var(--ink);
+    box-shadow:0 0 0 1px var(--line), 0 20px 60px -10px rgba(147,51,234,0.5);
+  }
+
+  h1{
+    font-family:'Unbounded', sans-serif;
+    font-weight:900;
+    font-size:clamp(48px, 14vw, 88px);
+    line-height:0.92;
+    letter-spacing:-0.01em;
+    margin:0;
+    background:linear-gradient(100deg, var(--blue-2) 0%, var(--magenta) 55%, var(--purple) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+
+  .genres{
+    margin:22px 0 0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  .pill{
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:7px 13px;
+    border:1px solid var(--line);
+    border-radius:100px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+
+  /* ---------- EQ VISUALIZER ---------- */
+  .eq{
+    margin:40px auto 0;
+    height:64px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:5px;
+  }
+  .bar{
+    width:6px;
+    border-radius:3px 3px 0 0;
+    background:linear-gradient(180deg, var(--blue-2), var(--magenta) 60%, var(--purple));
+    animation:bounce 1.1s ease-in-out infinite;
+    transform-origin:bottom;
+  }
+  @keyframes bounce{
+    0%,100%{ height:10px; opacity:0.6; }
+    50%{ height:var(--h, 48px); opacity:1; }
+  }
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-label{
+    margin:72px 0 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .section-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  /* ---------- LINK LIST ---------- */
+  .tracklist{
+    display:flex;
+    flex-direction:column;
+    border-top:1px solid var(--line);
+  }
+
+  .track{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:20px 4px;
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  .track::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg, rgba(59,91,255,0.16), rgba(233,63,220,0.16));
+    transform:translateX(-101%);
+    transition:transform 0.45s cubic-bezier(.16,.84,.44,1);
+    z-index:0;
+  }
+  .track:hover::before, .track:focus-visible::before{
+    transform:translateX(0);
+  }
+  .track:focus-visible{
+    outline:2px solid var(--magenta);
+    outline-offset:-2px;
+  }
+
+  .track-num{
+    position:relative; z-index:1;
+    font-size:12px;
+    color:var(--muted);
+    width:22px;
+    flex-shrink:0;
+  }
+
+  .track-icon{
+    position:relative; z-index:1;
+    width:38px; height:38px;
+    flex-shrink:0;
+    border-radius:9px;
+    background:var(--black-2);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .track-icon svg{ width:18px; height:18px; fill:var(--ink); }
+
+  .track-body{
+    position:relative; z-index:1;
+    flex:1;
+    min-width:0;
+  }
+  .track-title{
+    font-family:'Unbounded', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.01em;
+  }
+  .track-sub{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+
+  .track-arrow{
+    position:relative; z-index:1;
+    font-size:16px;
+    color:var(--muted);
+    transition:transform 0.3s ease, color 0.3s ease;
+  }
+  .track:hover .track-arrow{
+    transform:translateX(3px);
+    color:var(--ink);
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top:64px;
+    text-align:center;
+  }
+  .cta{
+    display:inline-block;
+    padding:14px 30px;
+    border-radius:100px;
+    background:linear-gradient(100deg, var(--blue), var(--purple));
+    color:var(--ink);
+    text-decoration:none;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.03em;
+    box-shadow:0 12px 40px -10px rgba(147,51,234,0.55);
+    transition:transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .cta:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 46px -8px rgba(233,63,220,0.55);
+  }
+
+  .fine{
+    margin-top:28px;
+    font-size:11px;
+    letter-spacing:0.04em;
+    color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<main>
+
+  <section class="hero">
+    <div class="avatar">TNV</div>
+    <h1>TANOVA</h1>
+
+    <div class="genres">
+      <span class="pill">Future Bounce</span>
+      <span class="pill">Progressive House</span>
+      <span class="pill">Bass House</span>
+      <span class="pill">Tech House</span>
+      <span class="pill">Techno</span>
+    </div>
+
+    <div class="eq" aria-hidden="true">
+      <!-- staggered bars for a live-visualizer feel -->
+      <div class="bar" style="--h:30px; animation-delay:-0.1s;"></div>
+      <div class="bar" style="--h:52px; animation-delay:-0.5s;"></div>
+      <div class="bar" style="--h:22px; animation-delay:-0.9s;"></div>
+      <div class="bar" style="--h:60px; animation-delay:-0.3s;"></div>
+      <div class="bar" style="--h:38px; animation-delay:-0.7s;"></div>
+      <div class="bar" style="--h:58px; animation-delay:-1.0s;"></div>
+      <div class="bar" style="--h:26px; animation-delay:-0.2s;"></div>
+      <div class="bar" style="--h:46px; animation-delay:-0.6s;"></div>
+      <div class="bar" style="--h:34px; animation-delay:-0.4s;"></div>
+      <div class="bar" style="--h:56px; animation-delay:-0.8s;"></div>
+      <div class="bar" style="--h:20px; animation-delay:-1.1s;"></div>
+    </div>
+  </section>
+
+  <div class="section-label">Tracklist</div>
+
+  <nav class="tracklist" aria-label="TANOVA links">
+
+    <a class="track" href="https://open.spotify.com/artist/0uTNCwjLjdDXG1ya9p8s4A" target="_blank" rel="noopener">
+      <span class="track-num">01</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.4a.62.62 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.62.62 0 1 1-.28-1.22c3.83-.88 7.12-.5 9.76 1.12.3.18.4.57.21.86Zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 1 1-.45-1.49c3.66-1.11 8.2-.57 11.28 1.33.37.23.49.72.26 1.07Zm.1-2.83C14.6 8.9 9.12 8.7 5.96 9.66a.93.93 0 1 1-.54-1.78c3.63-1.1 9.66-.87 13.47 1.4a.93.93 0 1 1-.98 1.58Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">Spotify — metaphor</span>
+        <span class="track-sub">Stream the single</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+    <a class="track" href="https://open.spotify.com/search/beatsbytanova%20blooms" target="_blank" rel="noopener">
+      <span class="track-num">02</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.59 14.4a.62.62 0 0 1-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.62.62 0 1 1-.28-1.22c3.83-.88 7.12-.5 9.76 1.12.3.18.4.57.21.86Zm1.22-2.72a.78.78 0 0 1-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 1 1-.45-1.49c3.66-1.11 8.2-.57 11.28 1.33.37.23.49.72.26 1.07Zm.1-2.83C14.6 8.9 9.12 8.7 5.96 9.66a.93.93 0 1 1-.54-1.78c3.63-1.1 9.66-.87 13.47 1.4a.93.93 0 1 1-.98 1.58Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">Spotify — blooms</span>
+        <span class="track-sub">Stream the single</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+    <a class="track" href="https://soundcloud.com/beatsbytanova" target="_blank" rel="noopener">
+      <span class="track-num">03</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M1.5 15h1V10h-1zM3.5 15h1V8h-1zM5.5 15h1V9h-1zM7.5 15h1V6h-1zM9.5 15h1V4h-1zM11.5 16h1V5h-1zM13.5 16.5c3.5 0 6.5-.2 6.5-3.75S17 8.5 15.5 8.5c-.55 0-1.05.14-1.5.38V16.5h-.5Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">SoundCloud</span>
+        <span class="track-sub">Sets, edits &amp; unreleased</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+    <a class="track" href="https://www.tiktok.com/@beatsbytanova" target="_blank" rel="noopener">
+      <span class="track-num">04</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M16.5 2h-3v13.2a2.8 2.8 0 1 1-2-2.68V9.4a5.8 5.8 0 1 0 5 5.75V8.9a7.5 7.5 0 0 0 4 1.17V7.07a4.5 4.5 0 0 1-4-4.07Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">TikTok</span>
+        <span class="track-sub">@beatsbytanova</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+    <a class="track" href="http://instagram.com/beatsbytanova" target="_blank" rel="noopener">
+      <span class="track-num">05</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2.2c2.7 0 3 0 4.1.06 1.05.05 1.6.22 2 .37.5.2.86.42 1.24.8.38.38.6.74.8 1.24.15.4.32.95.37 2 .06 1.1.06 1.4.06 4.1s0 3-.06 4.1c-.05 1.05-.22 1.6-.37 2-.2.5-.42.86-.8 1.24-.38.38-.74.6-1.24.8-.4.15-.95.32-2 .37-1.1.06-1.4.06-4.1.06s-3 0-4.1-.06c-1.05-.05-1.6-.22-2-.37a3.3 3.3 0 0 1-1.24-.8 3.3 3.3 0 0 1-.8-1.24c-.15-.4-.32-.95-.37-2-.06-1.1-.06-1.4-.06-4.1s0-3 .06-4.1c.05-1.05.22-1.6.37-2 .2-.5.42-.86.8-1.24.38-.38.74-.6 1.24-.8.4-.15.95-.32 2-.37C9 2.2 9.3 2.2 12 2.2Zm0 1.8c-2.66 0-2.97 0-4.02.06-.87.04-1.34.18-1.65.3-.42.16-.72.36-1.03.67-.31.31-.5.6-.67 1.03-.12.31-.26.78-.3 1.65C4.28 8.7 4.28 9 4.28 11.66v.68c0 2.66 0 2.97.06 4.02.04.87.18 1.34.3 1.65.16.42.36.72.67 1.03.31.31.6.5 1.03.67.31.12.78.26 1.65.3 1.05.06 1.36.06 4.02.06s2.97 0 4.02-.06c.87-.04 1.34-.18 1.65-.3.42-.16.72-.36 1.03-.67.31-.31.5-.6.67-1.03.12-.31.26-.78.3-1.65.06-1.05.06-1.36.06-4.02s0-2.97-.06-4.02c-.04-.87-.18-1.34-.3-1.65a2.8 2.8 0 0 0-.67-1.03 2.8 2.8 0 0 0-1.03-.67c-.31-.12-.78-.26-1.65-.3-1.05-.06-1.36-.06-4.02-.06ZM12 6.9a5.1 5.1 0 1 1 0 10.2 5.1 5.1 0 0 1 0-10.2Zm0 1.8a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Zm5.3-2a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">Instagram</span>
+        <span class="track-sub">@beatsbytanova</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+    <a class="track" href="mailto:beatsbytanova@gmail.com">
+      <span class="track-num">06</span>
+      <span class="track-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1.7 2 7.3 5.6L19.3 7H4.7Zm-.7 1.4V17h18V8.4l-8.4 6.4a1 1 0 0 1-1.2 0L4 8.4Z"/></svg>
+      </span>
+      <span class="track-body">
+        <span class="track-title">Booking &amp; Contact</span>
+        <span class="track-sub">For bookings and inquiries</span>
+      </span>
+      <span class="track-arrow">→</span>
+    </a>
+
+  </nav>
+
+  <footer>
+    <a class="cta" href="https://open.spotify.com/artist/0uTNCwjLjdDXG1ya9p8s4A" target="_blank" rel="noopener">Listen now</a>
+    <p class="fine">TANOVA · Future Bounce / Prog House / Bass House / Tech House / Techno</p>
+  </footer>
+
+</main>
+
+</body>
+</html>
