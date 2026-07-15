@@ -142,6 +142,9 @@
   .rel-play svg{ width:16px; height:16px; fill:currentColor; }
   .rel:hover .rel-play{ color:var(--ink); }
 
+  /* new release (full-width card, same style as other releases) */
+  .rel.featured{ grid-column:1 / -1; }
+
   /* ---------------- APPEARANCES ---------------- */
   .venues{ display:flex; flex-direction:column; border-top:1px solid var(--line); }
   .venue{ display:flex; align-items:center; gap:16px; padding:16px 4px; border-bottom:1px solid var(--line); }
@@ -318,6 +321,11 @@
   <section class="block reveal">
     <div class="eyebrow">Discography</div>
     <div class="disco">
+      <a class="rel featured" href="https://open.spotify.com/track/2RrCgJlMUD9smqUmnca7FK" target="_blank" rel="noopener">
+        <span class="rel-kind">New Release</span>
+        <span class="rel-name">2 the moon and back</span>
+        <span class="rel-play"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20Zm4.59 14.4a.62.62 0 01-.86.21c-2.36-1.44-5.33-1.77-8.83-.97a.62.62 0 11-.28-1.22c3.83-.88 7.12-.5 9.76 1.12.3.18.4.57.21.86Zm1.22-2.72a.78.78 0 01-1.07.26c-2.7-1.66-6.82-2.14-10.02-1.17a.78.78 0 11-.45-1.49c3.66-1.11 8.2-.57 11.28 1.33.37.23.49.72.26 1.07Zm.1-2.83C14.6 8.9 9.12 8.7 5.96 9.66a.93.93 0 11-.54-1.78c3.63-1.1 9.66-.87 13.47 1.4a.93.93 0 11-.98 1.58Z"/></svg>Play on Spotify</span>
+      </a>
       <a class="rel" href="https://open.spotify.com/artist/0uTNCwjLjdDXG1ya9p8s4A" target="_blank" rel="noopener">
         <span class="rel-kind">Single</span>
         <span class="rel-name">blooms</span>
